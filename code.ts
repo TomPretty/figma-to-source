@@ -1,7 +1,7 @@
 type Priority = "primary" | "secondary" | "tertiary" | "subdued";
 type Size = "default" | "small" | "xsmall"
 type IconPosition = "icon-left" | "icon-right" | "icon"
-type IconType = "Tick"
+type IconType = "Checkmark" | "ArrowRightStraight"
 interface Icon  {
   position: IconPosition;
   type: IconType;
@@ -58,7 +58,10 @@ const parseIconType = (node: InstanceNode): IconType | null => {
   const name = vectorNode.name;
 
   if (name === "Tick") {
-    return "Tick";
+    return "Checkmark";
+  } 
+  else if (name === "Arrows right") {
+    return "ArrowRightStraight";
   }
   return null;
 }
@@ -91,13 +94,18 @@ const parseNode = (node: InstanceNode): SourceButtonInfo => {
 
 const getSourceIconCode = (icon: Icon): string => {
   let svgCode = "";
-  if ( icon.type === 'Tick' ) {
+  if (icon.type === 'Checkmark') {
     svgCode = "icon={<SvgCheckmark />}";
   }
+  else if (icon.type === 'ArrowRightStraight') {
+    svgCode = "icon={<SvgArrowRightStraight />}";
+  }
+
   let iconSideCode = "";
   if (icon.position === "icon-left") {
     iconSideCode = "iconSide=\"left\""
-  } else if (icon.position === "icon-right") {
+  }
+  else if (icon.position === "icon-right") {
     iconSideCode = "iconSide=\"right\""
   }
 
@@ -110,7 +118,7 @@ const getSourceButtonCode = (info: SourceButtonInfo): string => {
 <Button
   priority="${info.priority}"
   size="${info.size}"
-  ${info.icon && getSourceIconCode(info.icon)}
+  ${!!info.icon ? getSourceIconCode(info.icon) : ''}
 >
   ${info.text}
 </Button>`

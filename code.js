@@ -36,7 +36,10 @@ const parseIconType = (node) => {
     }
     const name = vectorNode.name;
     if (name === "Tick") {
-        return "Tick";
+        return "Checkmark";
+    }
+    else if (name === "Arrows right") {
+        return "ArrowRightStraight";
     }
     return null;
 };
@@ -61,8 +64,11 @@ const parseNode = (node) => {
 };
 const getSourceIconCode = (icon) => {
     let svgCode = "";
-    if (icon.type === 'Tick') {
+    if (icon.type === 'Checkmark') {
         svgCode = "icon={<SvgCheckmark />}";
+    }
+    else if (icon.type === 'ArrowRightStraight') {
+        svgCode = "icon={<SvgArrowRightStraight />}";
     }
     let iconSideCode = "";
     if (icon.position === "icon-left") {
@@ -78,7 +84,7 @@ const getSourceButtonCode = (info) => {
 <Button
   priority="${info.priority}"
   size="${info.size}"
-  ${info.icon && getSourceIconCode(info.icon)}
+  ${!!info.icon ? getSourceIconCode(info.icon) : ''}
 >
   ${info.text}
 </Button>`);

@@ -12,7 +12,18 @@ const parsePriority = (priority) => {
         return 'subdued';
     }
 };
-const NAME_REGEX = /\d\. (Primary|Secondary|Tertiary|Subdued)/;
+const parseSize = (size) => {
+    if (size === 'md') {
+        return 'default';
+    }
+    else if (size === 'sm') {
+        return 'small';
+    }
+    else {
+        return 'xsmall';
+    }
+};
+const NAME_REGEX = /\d\. (Primary|Secondary|Tertiary|Subdued) (md|sm|xsm)/;
 const parseText = (node, priority) => {
     let frameNode;
     if (priority === 'primary') {
@@ -28,14 +39,15 @@ const parseNode = (node) => {
     const name = node.name;
     const match = name.match(NAME_REGEX);
     const priority = parsePriority(match[1]);
+    const size = parseSize(match[2]);
     const text = parseText(node, priority);
-    return { priority, text };
+    return { priority, size, text };
 };
 const getSourceButtonCode = (info) => {
     return (`
 <Button
   priority="${info.priority}"
-  size="default"
+  size="${info.size}"
 >
   ${info.text}
 </Button>`);

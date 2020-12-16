@@ -1,8 +1,16 @@
 type Priority = "primary" | "secondary" | "tertiary" | "subdued";
 type Size = "default" | "small" | "xsmall"
+type IconPosition = "icon-left" | "icon-right" | "icon"
+type IconType = "Tick"
+interface Icon  {
+  position: IconPosition;
+  type: IconType;
+}
+
 interface SourceButtonInfo {
   priority: Priority,
   size: Size,
+  icon?: Icon,
   text: string,
 }
 
@@ -33,16 +41,32 @@ const parseSize = (size: string): Size => {
   }
 }
 
-const NAME_REGEX = /\d\. (Primary|Secondary|Tertiary|Subdued) (md|sm|xsm)/ 
-
-const parseText = (node: InstanceNode, priority: Priority): string => {
-  let frameNode: FrameNode;
-  if (priority === 'primary') {
-    frameNode = node.children[0] as FrameNode;
-  } else {
-    frameNode = (node.children[0] as FrameNode).children[0] as FrameNode;
+const parseIconPosition = (iconPosition?: string): IconPosition | null => {
+  if (iconPosition === "icon-left" || iconPosition === "icon-right" || iconPosition === "icon") {
+    return iconPosition;
   }
-  const textNode = frameNode.children[0] as TextNode;
+  return null;
+}
+
+const parseIconType = (node: InstanceNode): IconType | null => {
+  const vectorNode = node.findAll(node => node.type === "VECTOR")[0] as VectorNode;
+
+  if (!vectorNode) {
+    return null;
+  }
+
+  const name = vectorNode.name;
+
+  if (name === "Tick") {
+    return "Tick";
+  }
+  return null;
+}
+
+const NAME_REGEX = /\d\. (Primary|Secondary|Tertiary|Subdued) (md|sm|xsm)(?: (icon-left|icon-right|icon))?/ 
+
+const parseText = (node: InstanceNode): string => {
+  const textNode = node.findAll(node => node.type === "TEXT")[0] as TextNode;
 
   return textNode.characters;
 }
@@ -52,9 +76,32 @@ const parseNode = (node: InstanceNode): SourceButtonInfo => {
   const match = name.match(NAME_REGEX)
   const priority = parsePriority(match[1])
   const size = parseSize(match[2]);
-  const text = parseText(node, priority);
 
-  return { priority, size, text }
+  let icon: Icon | undefined;
+  const iconPosition = parseIconPosition(match[3]);
+  const iconType = parseIconType(node);
+  if (iconPosition && iconType) {
+    icon = { position: iconPosition, type: iconType }
+  }
+
+  const text = parseText(node);
+
+  return { priority, size, icon, text }
+}
+
+const getSourceIconCode = (icon: Icon): string => {
+  let svgCode = "";
+  if ( icon.type === 'Tick' ) {
+    svgCode = "icon={<SvgCheckmark />}";
+  }
+  let iconSideCode = "";
+  if (icon.position === "icon-left") {
+    iconSideCode = "iconSide=\"left\""
+  } else if (icon.position === "icon-right") {
+    iconSideCode = "iconSide=\"right\""
+  }
+
+  return `${svgCode}\n  ${iconSideCode}`
 }
 
 const getSourceButtonCode = (info: SourceButtonInfo): string => {
@@ -63,6 +110,7 @@ const getSourceButtonCode = (info: SourceButtonInfo): string => {
 <Button
   priority="${info.priority}"
   size="${info.size}"
+  ${info.icon && getSourceIconCode(info.icon)}
 >
   ${info.text}
 </Button>`
@@ -85,5 +133,7 @@ figma.ui.onmessage = msg => {
     const code = getSourceButtonCode(info);
 
     sendCodeToUi(code);
+
+    console.log(info);
   }
 };

@@ -23,16 +23,26 @@ const parseSize = (size) => {
         return 'xsmall';
     }
 };
-const NAME_REGEX = /\d\. (Primary|Secondary|Tertiary|Subdued) (md|sm|xsm)/;
-const parseText = (node, priority) => {
-    let frameNode;
-    if (priority === 'primary') {
-        frameNode = node.children[0];
+const parseIconPosition = (iconPosition) => {
+    if (iconPosition === "icon-left" || iconPosition === "icon-right" || iconPosition === "icon") {
+        return iconPosition;
     }
-    else {
-        frameNode = node.children[0].children[0];
+    return null;
+};
+const parseIconType = (node) => {
+    const vectorNode = node.findAll(node => node.type === "VECTOR")[0];
+    if (!vectorNode) {
+        return null;
     }
-    const textNode = frameNode.children[0];
+    const name = vectorNode.name;
+    if (name === "Tick") {
+        return "Tick";
+    }
+    return null;
+};
+const NAME_REGEX = /\d\. (Primary|Secondary|Tertiary|Subdued) (md|sm|xsm)(?: (icon-left|icon-right|icon))?/;
+const parseText = (node) => {
+    const textNode = node.findAll(node => node.type === "TEXT")[0];
     return textNode.characters;
 };
 const parseNode = (node) => {
@@ -40,14 +50,35 @@ const parseNode = (node) => {
     const match = name.match(NAME_REGEX);
     const priority = parsePriority(match[1]);
     const size = parseSize(match[2]);
-    const text = parseText(node, priority);
-    return { priority, size, text };
+    let icon;
+    const iconPosition = parseIconPosition(match[3]);
+    const iconType = parseIconType(node);
+    if (iconPosition && iconType) {
+        icon = { position: iconPosition, type: iconType };
+    }
+    const text = parseText(node);
+    return { priority, size, icon, text };
+};
+const getSourceIconCode = (icon) => {
+    let svgCode = "";
+    if (icon.type === 'Tick') {
+        svgCode = "icon={<SvgCheckmark />}";
+    }
+    let iconSideCode = "";
+    if (icon.position === "icon-left") {
+        iconSideCode = "iconSide=\"left\"";
+    }
+    else if (icon.position === "icon-right") {
+        iconSideCode = "iconSide=\"right\"";
+    }
+    return `${svgCode}\n  ${iconSideCode}`;
 };
 const getSourceButtonCode = (info) => {
     return (`
 <Button
   priority="${info.priority}"
   size="${info.size}"
+  ${info.icon && getSourceIconCode(info.icon)}
 >
   ${info.text}
 </Button>`);
@@ -63,5 +94,6 @@ figma.ui.onmessage = msg => {
         const info = parseNode(node);
         const code = getSourceButtonCode(info);
         sendCodeToUi(code);
+        console.log(info);
     }
 };

@@ -41,11 +41,17 @@ const parseIconType = (node) => {
     else if (name === "Arrows right") {
         return "ArrowRightStraight";
     }
+    else if (name === "Close") {
+        return "Cross";
+    }
     return null;
 };
 const NAME_REGEX = /\d\. (Primary|Secondary|Tertiary|Subdued) (md|sm|xsm)(?: (icon-left|icon-right|icon))?/;
 const parseText = (node) => {
     const textNode = node.findAll(node => node.type === "TEXT")[0];
+    if (!textNode) {
+        return '';
+    }
     return textNode.characters;
 };
 const parseNode = (node) => {
@@ -70,12 +76,18 @@ const getSourceIconCode = (icon) => {
     else if (icon.type === 'ArrowRightStraight') {
         svgCode = "icon={<SvgArrowRightStraight />}";
     }
+    else if (icon.type === 'Cross') {
+        svgCode = "icon={<SvgCross />}";
+    }
     let iconSideCode = "";
     if (icon.position === "icon-left") {
         iconSideCode = "iconSide=\"left\"";
     }
     else if (icon.position === "icon-right") {
         iconSideCode = "iconSide=\"right\"";
+    }
+    else if (icon.position === "icon") {
+        iconSideCode = "hideLabel={true}";
     }
     return `${svgCode}\n  ${iconSideCode}`;
 };

@@ -1,7 +1,7 @@
 type Priority = "primary" | "secondary" | "tertiary" | "subdued";
 type Size = "default" | "small" | "xsmall"
 type IconPosition = "icon-left" | "icon-right" | "icon"
-type IconType = "Checkmark" | "ArrowRightStraight"
+type IconType = "Checkmark" | "ArrowRightStraight" | "Cross"
 interface Icon  {
   position: IconPosition;
   type: IconType;
@@ -63,6 +63,9 @@ const parseIconType = (node: InstanceNode): IconType | null => {
   else if (name === "Arrows right") {
     return "ArrowRightStraight";
   }
+  else if (name === "Close") {
+    return "Cross";
+  }
   return null;
 }
 
@@ -70,6 +73,10 @@ const NAME_REGEX = /\d\. (Primary|Secondary|Tertiary|Subdued) (md|sm|xsm)(?: (ic
 
 const parseText = (node: InstanceNode): string => {
   const textNode = node.findAll(node => node.type === "TEXT")[0] as TextNode;
+
+  if (!textNode) {
+    return '';
+  }
 
   return textNode.characters;
 }
@@ -100,6 +107,9 @@ const getSourceIconCode = (icon: Icon): string => {
   else if (icon.type === 'ArrowRightStraight') {
     svgCode = "icon={<SvgArrowRightStraight />}";
   }
+  else if (icon.type === 'Cross') {
+    svgCode = "icon={<SvgCross />}";
+  }
 
   let iconSideCode = "";
   if (icon.position === "icon-left") {
@@ -107,6 +117,8 @@ const getSourceIconCode = (icon: Icon): string => {
   }
   else if (icon.position === "icon-right") {
     iconSideCode = "iconSide=\"right\""
+  } else if (icon.position === "icon") {
+    iconSideCode = "hideLabel={true}"
   }
 
   return `${svgCode}\n  ${iconSideCode}`

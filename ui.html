@@ -1,17 +1,24 @@
-<h2>Rectangle Creator</h2>
-<p>Count: <input id="count" value="5"></p>
-<button id="create">Create</button>
+<h2>Figma -> Source</h2>
+<button id="generate">Generate</button>
 <button id="cancel">Cancel</button>
+<textarea name="code" id="code" cols="30" rows="10"></textarea>
 <script>
 
-document.getElementById('create').onclick = () => {
-  const textbox = document.getElementById('count');
-  const count = parseInt(textbox.value, 10);
-  parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*')
+document.getElementById('generate').onclick = () => {
+  parent.postMessage({ pluginMessage: { type: 'generate' } }, '*')
 }
 
 document.getElementById('cancel').onclick = () => {
   parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
+}
+
+const textarea = document.getElementById('code')
+
+onmessage = msg => {
+  const pluginMsg = msg.data.pluginMessage;
+  if (pluginMsg.type === 'code') {
+    textarea.value = pluginMsg.code;
+  }
 }
 
 </script>

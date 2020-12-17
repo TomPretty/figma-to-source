@@ -30,3 +30,11 @@ button:focus {
   padding: 4px 8px;
   background-color: #e1e4e8;
 }
+
+#copyable-code {
+  height: 1px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+}

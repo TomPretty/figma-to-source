@@ -8,6 +8,7 @@ import "./ui.css";
 const App: React.FC = () => {
   const [code, setCode] = React.useState("// nothing here yet...");
   const [highlightedCode, setHighlightedCode] = React.useState("");
+  const copyableCodeRef = React.useRef(null);
 
   React.useEffect(() => {
     window.onmessage = (msg) => {
@@ -30,6 +31,14 @@ const App: React.FC = () => {
     window.parent.postMessage({ pluginMessage: { type: "generate" } }, "*");
   };
 
+  const onCopyClick = () => {
+    if (!copyableCodeRef.current) {
+      return;
+    }
+    copyableCodeRef.current.select();
+    document.execCommand("copy");
+  }
+
   return (
     <>
       <div>
@@ -37,10 +46,14 @@ const App: React.FC = () => {
         <button className="button-primary" onClick={onGenerateClick}>
           Generate
         </button>
+        <button className="button" onClick={onCopyClick}>
+          Copy
+        </button>
         <pre
           className="code"
           dangerouslySetInnerHTML={{ __html: highlightedCode }}
         />
+        <textarea id="copyable-code" ref={copyableCodeRef} value={code} readOnly/>
       </div>
       <script></script>
     </>
